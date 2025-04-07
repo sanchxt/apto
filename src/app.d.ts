@@ -8,6 +8,20 @@ declare global {
     // interface PageState {}
     // interface Platform {}
   }
+
+  interface Window {
+    __TAURI__?: {
+      window: {
+        appWindow: {
+          close: () => Promise<void>;
+          minimize: () => Promise<void>;
+          maximize: () => Promise<void>;
+          unmaximize: () => Promise<void>;
+          isMaximized: () => Promise<boolean>;
+        };
+      };
+    };
+  }
 }
 
 export {};

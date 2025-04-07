@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: ^2.4.1
+        version: 2.4.1
     devDependencies:
       '@eslint/compat':
         specifier: ^1.2.5
@@ -540,6 +544,9 @@ packages:
     resolution: {integrity: sha512-lUI/QaDxLtlV52Lho6pu07CG9pSnRYLOPmKGIQjyHdTBagemc6HmgZxyjGAQ/5HMPrNeWBfTVIpQl0/jLXvWHQ==}
     peerDependencies:
       vite: ^5.2.0 || ^6
+
+  '@tauri-apps/api@2.4.1':
+    resolution: {integrity: sha512-5sYwZCSJb6PBGbBL4kt7CnE5HHbBqwH+ovmOW6ZVju3nX4E3JX6tt2kRklFEH7xMOIwR0btRkZktuLhKvyEQYg==}
 
   '@tauri-apps/cli-darwin-arm64@1.6.3':
     resolution: {integrity: sha512-fQN6IYSL8bG4NvkdKE4sAGF4dF/QqqQq4hOAU+t8ksOzHJr0hUlJYfncFeJYutr/MMkdF7hYKadSb0j5EE9r0A==}
@@ -1768,6 +1775,8 @@ snapshots:
       '@tailwindcss/oxide': 4.1.3
       tailwindcss: 4.1.3
       vite: 6.2.5(jiti@2.4.2)(lightningcss@1.29.2)
+
+  '@tauri-apps/api@2.4.1': {}
 
   '@tauri-apps/cli-darwin-arm64@1.6.3':
     optional: true
