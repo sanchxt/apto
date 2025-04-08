@@ -1,72 +1,157 @@
 <script lang="ts">
-  // You can add any page-specific logic here
-</script>
+    import { invoke } from "@tauri-apps/api/core";
 
-<div class="flex h-[calc(100vh-60px)] flex-col items-center justify-center p-4">
-  <div class="glass-card max-w-lg rounded-xl p-6 text-center">
-    <h1 class="mb-4 text-2xl font-bold">Welcome to Apto</h1>
-    <p class="mb-6">
-      This is your new translucent application with a glass-like effect. You can
-      see through the background while maintaining readability.
-    </p>
+    let name = $state("");
+    let greetMsg = $state("");
 
-    <div class="flex justify-center gap-4">
-      <button class="glass-button rounded-lg px-4 py-2"> Get Started </button>
-      <button class="glass-button-outline rounded-lg px-4 py-2">
-        Learn More
-      </button>
+    async function greet(event: Event) {
+      event.preventDefault();
+      // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
+      greetMsg = await invoke("greet", { name });
+    }
+  </script>
+
+  <main class="container">
+    <h1>Welcome to Tauri + Svelte</h1>
+
+    <div class="row">
+      <a href="https://vitejs.dev" target="_blank">
+        <img src="/vite.svg" class="logo vite" alt="Vite Logo" />
+      </a>
+      <a href="https://tauri.app" target="_blank">
+        <img src="/tauri.svg" class="logo tauri" alt="Tauri Logo" />
+      </a>
+      <a href="https://kit.svelte.dev" target="_blank">
+        <img src="/svelte.svg" class="logo svelte-kit" alt="SvelteKit Logo" />
+      </a>
     </div>
-  </div>
-</div>
+    <p>Click on the Tauri, Vite, and SvelteKit logos to learn more.</p>
 
-<style>
-  /* Additional glass effect styles for cards and buttons */
-  .glass-card {
-    background: rgba(255, 255, 255, 0.35);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+    <form class="row" onsubmit={greet}>
+      <input id="greet-input" placeholder="Enter a name..." bind:value={name} />
+      <button type="submit">Greet</button>
+    </form>
+    <p>{greetMsg}</p>
+  </main>
+
+  <style>
+  .logo.vite:hover {
+    filter: drop-shadow(0 0 2em #747bff);
   }
 
-  .glass-button {
-    background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(5px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: all 0.3s;
+  .logo.svelte-kit:hover {
+    filter: drop-shadow(0 0 2em #ff3e00);
   }
 
-  .glass-button:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: translateY(-2px);
+  :root {
+    font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 400;
+
+    color: #0f0f0f;
+    background-color: #f6f6f6;
+
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-text-size-adjust: 100%;
   }
 
-  .glass-button-outline {
-    background: transparent;
-    backdrop-filter: blur(5px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    transition: all 0.3s;
+  .container {
+    margin: 0;
+    padding-top: 5vh; /* Reduced from 10vh to accommodate title bar */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    height: 100%;
+    overflow-y: auto;
   }
 
-  .glass-button-outline:hover {
-    border-color: rgba(255, 255, 255, 0.5);
-    transform: translateY(-2px);
+  .logo {
+    height: 6em;
+    padding: 1.5em;
+    will-change: filter;
+    transition: 0.75s;
   }
 
-  /* Dark mode support for components */
-  :global(.dark) .glass-card {
-    background: rgba(30, 30, 30, 0.4);
-    border-color: rgba(255, 255, 255, 0.05);
+  .logo.tauri:hover {
+    filter: drop-shadow(0 0 2em #24c8db);
   }
 
-  :global(.dark) .glass-button {
-    background: rgba(60, 60, 60, 0.3);
+  .row {
+    display: flex;
+    justify-content: center;
   }
 
-  :global(.dark) .glass-button:hover {
-    background: rgba(60, 60, 60, 0.5);
+  a {
+    font-weight: 500;
+    color: #646cff;
+    text-decoration: inherit;
   }
 
-  :global(.dark) .glass-button-outline {
-    border-color: rgba(255, 255, 255, 0.1);
+  a:hover {
+    color: #535bf2;
   }
-</style>
+
+  h1 {
+    text-align: center;
+  }
+
+  input,
+  button {
+    border-radius: 8px;
+    border: 1px solid transparent;
+    padding: 0.6em 1.2em;
+    font-size: 1em;
+    font-weight: 500;
+    font-family: inherit;
+    color: #0f0f0f;
+    background-color: #ffffff;
+    transition: border-color 0.25s;
+    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  button:hover {
+    border-color: #396cd8;
+  }
+  button:active {
+    border-color: #396cd8;
+    background-color: #e8e8e8;
+  }
+
+  input,
+  button {
+    outline: none;
+  }
+
+  #greet-input {
+    margin-right: 5px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color: #f6f6f6;
+      background-color: #2f2f2f;
+    }
+
+    a:hover {
+      color: #24c8db;
+    }
+
+    input,
+    button {
+      color: #ffffff;
+      background-color: #0f0f0f98;
+    }
+    button:active {
+      background-color: #0f0f0f69;
+    }
+  }
+  </style>
