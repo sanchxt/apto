@@ -1,40 +1,41 @@
 <script lang="ts">
-    import { invoke } from "@tauri-apps/api/core";
+  import { invoke } from "@tauri-apps/api/core";
 
-    let name = $state("");
-    let greetMsg = $state("");
+  let name = $state("");
+  let greetMsg = $state("");
 
-    async function greet(event: Event) {
-      event.preventDefault();
-      // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-      greetMsg = await invoke("greet", { name });
-    }
-  </script>
+  async function greet(event: Event) {
+    event.preventDefault();
+    greetMsg = await invoke("greet", { name });
+  }
+</script>
 
-  <main class="container">
-    <h1>Welcome to Tauri + Svelte</h1>
+<main class="container">
+  <h1>Welcome to Tauri + Svelte</h1>
 
-    <div class="row">
-      <a href="https://vitejs.dev" target="_blank">
-        <img src="/vite.svg" class="logo vite" alt="Vite Logo" />
-      </a>
-      <a href="https://tauri.app" target="_blank">
-        <img src="/tauri.svg" class="logo tauri" alt="Tauri Logo" />
-      </a>
-      <a href="https://kit.svelte.dev" target="_blank">
-        <img src="/svelte.svg" class="logo svelte-kit" alt="SvelteKit Logo" />
-      </a>
-    </div>
-    <p>Click on the Tauri, Vite, and SvelteKit logos to learn more.</p>
+  <div class="row">
+    <a href="https://vitejs.dev" target="_blank">
+      <img src="/vite.svg" class="logo vite" alt="Vite Logo" />
+    </a>
+    <a href="https://tauri.app" target="_blank">
+      <img src="/tauri.svg" class="logo tauri" alt="Tauri Logo" />
+    </a>
+    <a href="https://kit.svelte.dev" target="_blank">
+      <img src="/svelte.svg" class="logo svelte-kit" alt="SvelteKit Logo" />
+    </a>
+  </div>
+  <p>Click on the Tauri, Vite, and SvelteKit logos to learn more.</p>
 
+  <div class="glass-card">
     <form class="row" onsubmit={greet}>
       <input id="greet-input" placeholder="Enter a name..." bind:value={name} />
       <button type="submit">Greet</button>
     </form>
-    <p>{greetMsg}</p>
-  </main>
+    <p class="result">{greetMsg}</p>
+  </div>
+</main>
 
-  <style>
+<style>
   .logo.vite:hover {
     filter: drop-shadow(0 0 2em #747bff);
   }
@@ -50,7 +51,7 @@
     font-weight: 400;
 
     color: #0f0f0f;
-    background-color: #f6f6f6;
+    background-color: transparent;
 
     font-synthesis: none;
     text-rendering: optimizeLegibility;
@@ -61,13 +62,29 @@
 
   .container {
     margin: 0;
-    padding-top: 5vh; /* Reduced from 10vh to accommodate title bar */
+    padding-top: 5vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
     text-align: center;
     height: 100%;
     overflow-y: auto;
+  }
+
+  .glass-card {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 20px;
+    margin: 20px auto;
+    max-width: 500px;
+  }
+
+  .result {
+    margin-top: 12px;
+    font-weight: 500;
   }
 
   .logo {
@@ -109,9 +126,11 @@
     font-weight: 500;
     font-family: inherit;
     color: #0f0f0f;
-    background-color: #ffffff;
-    transition: border-color 0.25s;
-    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+    background-color: rgba(255, 255, 255, 0.7);
+    transition:
+      border-color 0.25s,
+      background-color 0.25s;
+    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.1);
   }
 
   button {
@@ -120,10 +139,12 @@
 
   button:hover {
     border-color: #396cd8;
+    background-color: rgba(255, 255, 255, 0.9);
   }
+
   button:active {
     border-color: #396cd8;
-    background-color: #e8e8e8;
+    background-color: rgba(232, 232, 232, 0.8);
   }
 
   input,
@@ -138,20 +159,31 @@
   @media (prefers-color-scheme: dark) {
     :root {
       color: #f6f6f6;
-      background-color: #2f2f2f;
     }
 
     a:hover {
       color: #24c8db;
     }
 
+    @media (prefers-color-scheme: dark) {
+      .glass-card {
+        background: rgba(50, 50, 50, 0.25);
+        border: 1px solid rgba(100, 100, 100, 0.15);
+      }
+    }
+
     input,
     button {
       color: #ffffff;
-      background-color: #0f0f0f98;
+      background-color: rgba(30, 30, 30, 0.7);
     }
+
+    button:hover {
+      background-color: rgba(30, 30, 30, 0.9);
+    }
+
     button:active {
-      background-color: #0f0f0f69;
+      background-color: rgba(20, 20, 20, 0.8);
     }
   }
-  </style>
+</style>
