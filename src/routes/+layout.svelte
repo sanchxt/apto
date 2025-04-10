@@ -1,31 +1,56 @@
 <script lang="ts">
   import TitleBar from "../lib/components/TitleBar.svelte";
-
   import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
+  import { invoke } from "@tauri-apps/api/core";
+  import { onMount } from "svelte";
+
+  let useAcrylic = $state(true);
 
   function handleTitleBarMouseDown(event: MouseEvent) {
     if (event.target instanceof HTMLElement) {
-      // initiate dragging if clicking on the titlebar only
       if (event.target.closest(".window-controls") === null) {
         WebviewWindow.getCurrent().startDragging();
       }
     }
   }
+
+  async function toggleAcrylic() {
+    try {
+      await invoke("set_acrylic_effect", { enable: useAcrylic });
+    } catch (error) {
+      console.error("Failed to toggle acrylic:", error);
+    }
+  }
+
+  onMount(() => {
+    toggleAcrylic();
+  });
+
+  let { children } = $props();
 </script>
 
-<div class="app glass-container">
-  <!-- window toolbar -->
+<div
+  class="app"
+  class:glass-container={useAcrylic}
+  class:static-bg={!useAcrylic}
+>
   <div
     class="titlebar-container"
-    on:mousedown={handleTitleBarMouseDown}
+    onmousedown={handleTitleBarMouseDown}
     role="presentation"
   >
     <TitleBar />
   </div>
-
-  <!-- app content -->
   <div class="content">
-    <slot />
+    <label>
+      <input
+        type="checkbox"
+        bind:checked={useAcrylic}
+        onchange={toggleAcrylic}
+      />
+      Acrylic Effect
+    </label>
+    {@render children()}
   </div>
 </div>
 
@@ -39,23 +64,27 @@
     padding: 0;
     border-radius: 12px;
     overflow: hidden;
+    position: relative;
   }
 
   .glass-container {
-    background: rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(80px);
-    -webkit-backdrop-filter: blur(80px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: transparent;
+  }
+
+  .static-bg {
+    background: rgba(50, 50, 50, 1);
   }
 
   .titlebar-container {
     flex-shrink: 0;
+    z-index: 1; /* ensure titlebar stays above background */
   }
 
   .content {
     flex: 1;
     overflow: auto;
+    padding: 10px;
+    z-index: 1; /* ensure content stays above background */
   }
 
   :global(body) {
@@ -65,11 +94,9 @@
     background: transparent;
   }
 
-  /* dark mode */
   @media (prefers-color-scheme: dark) {
-    .glass-container {
-      background: rgba(30, 30, 30, 0.4);
-      border: 1px solid rgba(100, 100, 100, 0.12);
+    .static-bg {
+      background: rgba(30, 30, 30, 1);
     }
   }
 </style>
