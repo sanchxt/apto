@@ -49,8 +49,7 @@
     font-size: 16px;
     line-height: 24px;
     font-weight: 400;
-
-    color: #0f0f0f;
+    color: inherit;
     background-color: transparent;
 
     font-synthesis: none;
@@ -80,6 +79,17 @@
     padding: 20px;
     margin: 20px auto;
     max-width: 500px;
+  }
+
+  /* Theme-specific glass card styles */
+  :global(html.light) .glass-card {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  }
+
+  :global(html.dark) .glass-card {
+    background: rgba(50, 50, 50, 0.25) !important;
+    border: 1px solid rgba(100, 100, 100, 0.15) !important;
   }
 
   .result {
@@ -125,26 +135,45 @@
     font-size: 1em;
     font-weight: 500;
     font-family: inherit;
-    color: #0f0f0f;
-    background-color: rgba(255, 255, 255, 0.7);
     transition:
       border-color 0.25s,
       background-color 0.25s;
     box-shadow: 0 2px 2px rgba(0, 0, 0, 0.1);
   }
 
+  /* input/button styles */
+  :global(html.light) input,
+  :global(html.light) button {
+    color: #0f0f0f !important;
+    background-color: rgba(255, 255, 255, 0.7) !important;
+  }
+
+  :global(html.light) button:hover {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    border-color: #396cd8 !important;
+  }
+
+  :global(html.light) button:active {
+    background-color: rgba(232, 232, 232, 0.8) !important;
+  }
+
+  :global(html.dark) input,
+  :global(html.dark) button {
+    color: #ffffff !important;
+    background-color: rgba(30, 30, 30, 0.7) !important;
+  }
+
+  :global(html.dark) button:hover {
+    background-color: rgba(30, 30, 30, 0.9) !important;
+    border-color: #396cd8 !important;
+  }
+
+  :global(html.dark) button:active {
+    background-color: rgba(20, 20, 20, 0.8) !important;
+  }
+
   button {
     cursor: pointer;
-  }
-
-  button:hover {
-    border-color: #396cd8;
-    background-color: rgba(255, 255, 255, 0.9);
-  }
-
-  button:active {
-    border-color: #396cd8;
-    background-color: rgba(232, 232, 232, 0.8);
   }
 
   input,
@@ -154,36 +183,5 @@
 
   #greet-input {
     margin-right: 5px;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    :root {
-      color: #f6f6f6;
-    }
-
-    a:hover {
-      color: #24c8db;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      .glass-card {
-        background: rgba(50, 50, 50, 0.25);
-        border: 1px solid rgba(100, 100, 100, 0.15);
-      }
-    }
-
-    input,
-    button {
-      color: #ffffff;
-      background-color: rgba(30, 30, 30, 0.7);
-    }
-
-    button:hover {
-      background-color: rgba(30, 30, 30, 0.9);
-    }
-
-    button:active {
-      background-color: rgba(20, 20, 20, 0.8);
-    }
   }
 </style>
