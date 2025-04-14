@@ -240,6 +240,8 @@
     cursor: default;
     position: relative;
     margin-top: 4px;
+    font-weight: 900;
+    letter-spacing: 1px;
   }
 
   .title {
