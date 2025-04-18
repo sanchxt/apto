@@ -40,7 +40,7 @@ fn get_system_theme() -> String {
     }
 }
 
-// Store the current theme preference
+// store the current theme preference
 static mut CURRENT_THEME: Option<String> = None;
 
 #[tauri::command]
@@ -58,7 +58,7 @@ fn set_theme(window: tauri::WebviewWindow, theme: &str) -> Result<(), String> {
             .set_theme(Some(Theme::Dark))
             .map_err(|e| e.to_string())?,
         "system" => {
-            // for system theme, we need to detect the current OS theme
+            // detect the current OS theme
             let system_theme = match dark_light::detect() {
                 dark_light::Mode::Dark => Theme::Dark,
                 dark_light::Mode::Light | dark_light::Mode::Default => Theme::Light,
@@ -191,7 +191,7 @@ pub fn run() {
             #[cfg(target_os = "windows")]
             apply_acrylic(&window, Some((100, 100, 100, 50))).expect("Failed to apply acrylic");
 
-            // Set the initial theme to system (which means detect OS theme)
+            // initial theme to system
             let system_theme = match dark_light::detect() {
                 dark_light::Mode::Dark => Theme::Dark,
                 dark_light::Mode::Light | dark_light::Mode::Default => Theme::Light,

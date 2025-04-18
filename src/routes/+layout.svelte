@@ -139,6 +139,58 @@
     color-scheme: light dark;
   }
 
+  /* Custom scrollbar styles */
+  :global(*::-webkit-scrollbar) {
+    width: 8px;
+    height: 8px;
+  }
+
+  :global(*::-webkit-scrollbar-track) {
+    background: transparent;
+  }
+
+  :global(*::-webkit-scrollbar-thumb) {
+    border-radius: 4px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+    background-color: rgba(128, 128, 128, 0.4);
+  }
+
+  :global(*::-webkit-scrollbar-thumb:hover) {
+    background-color: rgba(128, 128, 128, 0.5);
+  }
+
+  /* Firefox scrollbar styles */
+  :global(*) {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(128, 128, 128, 0.4) transparent;
+  }
+
+  /* Theme-specific scrollbar colors */
+  :global(html.light *::-webkit-scrollbar-thumb) {
+    background-color: rgba(0, 0, 0, 0.2);
+  }
+
+  :global(html.light *::-webkit-scrollbar-thumb:hover) {
+    background-color: rgba(0, 0, 0, 0.3);
+  }
+
+  :global(html.light *) {
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+  }
+
+  :global(html.dark *::-webkit-scrollbar-thumb) {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+
+  :global(html.dark *::-webkit-scrollbar-thumb:hover) {
+    background-color: rgba(255, 255, 255, 0.3);
+  }
+
+  :global(html.dark *) {
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+  }
+
   /* light mode */
   :global(html.light) .static-bg {
     background: rgba(245, 245, 245, 1) !important;
