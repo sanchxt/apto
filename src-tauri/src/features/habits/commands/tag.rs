@@ -2,7 +2,7 @@ use crate::db::init::DbState;
 use rusqlite::params;
 use tauri::State;
 
-use crate::models::HabitTag;
+use crate::features::habits::models::HabitTag;
 
 #[tauri::command]
 pub async fn get_all_tags(db_state: State<'_, DbState>) -> Result<Vec<HabitTag>, String> {

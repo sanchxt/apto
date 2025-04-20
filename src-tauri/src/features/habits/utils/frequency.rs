@@ -1,4 +1,4 @@
-use crate::models::FrequencyPattern;
+use crate::features::habits::models::FrequencyPattern;
 use serde_json;
 
 // helper function to convert FrequencyPattern to database format

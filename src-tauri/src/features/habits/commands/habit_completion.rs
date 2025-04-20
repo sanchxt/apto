@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 use rusqlite::params;
 use tauri::State;
 
-use crate::models::HabitCompletion;
+use crate::features::habits::models::HabitCompletion;
 
 #[tauri::command]
 pub async fn get_habit_completions(

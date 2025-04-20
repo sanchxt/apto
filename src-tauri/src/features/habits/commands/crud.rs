@@ -1,6 +1,6 @@
 use crate::db::init::DbState;
+use crate::features::habits::models::{FrequencyPattern, Habit};
 use crate::features::habits::utils::{deserialize_frequency, serialize_frequency};
-use crate::models::{FrequencyPattern, Habit};
 use chrono::{DateTime, NaiveDate, Utc};
 use log::info;
 use rusqlite::params;

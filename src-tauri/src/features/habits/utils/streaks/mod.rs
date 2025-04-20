@@ -1,4 +1,4 @@
-use crate::models::FrequencyPattern;
+use crate::features::habits::models::FrequencyPattern;
 use chrono::{DateTime, Datelike, NaiveDate, Utc};
 
 pub fn is_habit_due(

@@ -2,7 +2,7 @@ use crate::db::init::DbState;
 use rusqlite::params;
 use tauri::State;
 
-use crate::models::HabitReminder;
+use crate::features::habits::models::HabitReminder;
 
 #[tauri::command]
 pub async fn get_habit_reminders(

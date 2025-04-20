@@ -2,8 +2,6 @@ use std::sync::Mutex;
 use tauri::{Emitter, Manager, Theme};
 use window_vibrancy::apply_acrylic;
 
-mod models;
-
 mod db;
 use db::init::*;
 

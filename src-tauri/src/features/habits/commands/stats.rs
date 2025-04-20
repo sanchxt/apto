@@ -5,7 +5,7 @@ use serde_json;
 use std::collections::HashMap;
 use tauri::State;
 
-use crate::models::HabitStats;
+use crate::features::habits::models::HabitStats;
 
 #[tauri::command]
 pub async fn get_habit_stats(
