@@ -3,14 +3,14 @@
 </script>
 
 <main class="container">
-  <h1>Apto</h1>
+  <!-- <h1>Apto</h1> -->
 
   <HabitTracking />
 </main>
 
 <style>
   :root {
-    font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+    font-family: "Fira Code", Inter, Avenir, Helvetica, Arial, sans-serif;
     font-size: 16px;
     line-height: 24px;
     font-weight: 400;
@@ -35,9 +35,5 @@
     height: 100%;
     box-sizing: border-box;
     overflow-y: auto;
-  }
-
-  h1 {
-    text-align: center;
   }
 </style>
