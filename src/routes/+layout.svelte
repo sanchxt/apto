@@ -3,6 +3,7 @@
   import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
   import { onMount } from "svelte";
   import { invoke } from "@tauri-apps/api/core";
+  import { page } from "$app/state";
 
   // states
   let useAcrylic = $state(true);
@@ -88,8 +89,24 @@
   >
     <TitleBar bind:useAcrylic bind:currentTheme />
   </div>
-  <div class="content">
-    {@render children()}
+
+  <div class="app-content">
+    <nav class="sidebar">
+      <ul class="nav-links">
+        <li>
+          <a href="/" class:active={page.url.pathname === "/"}>Habits</a>
+        </li>
+        <li>
+          <a href="/notes" class:active={page.url.pathname === "/notes"}>
+            Notes
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="content">
+      {@render children()}
+    </div>
   </div>
 </div>
 
@@ -120,6 +137,50 @@
     z-index: 1;
   }
 
+  .app-content {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .sidebar {
+    width: 180px;
+    padding: 20px 0;
+    border-right: 1px solid rgba(128, 128, 128, 0.2);
+    z-index: 1;
+  }
+
+  .nav-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .nav-links li {
+    margin-bottom: 8px;
+  }
+
+  .nav-links a {
+    display: block;
+    padding: 10px 20px;
+    text-decoration: none;
+    color: inherit;
+    border-radius: 6px;
+    margin: 0 10px;
+    opacity: 0.8;
+    transition: all 0.2s;
+  }
+
+  .nav-links a:hover {
+    opacity: 1;
+    background-color: rgba(128, 128, 128, 0.1);
+  }
+
+  .nav-links a.active {
+    opacity: 1;
+    background-color: rgba(128, 128, 128, 0.15);
+  }
+
   .content {
     flex: 1;
     overflow: auto;
@@ -139,7 +200,7 @@
     color-scheme: light dark;
   }
 
-  /* Custom scrollbar styles */
+  /* custom scrollbar styles */
   :global(*::-webkit-scrollbar) {
     width: 8px;
     height: 8px;
@@ -160,7 +221,7 @@
     background-color: rgba(128, 128, 128, 0.5);
   }
 
-  /* Firefox scrollbar styles */
+  /* firefox scrollbar styles */
   :global(*) {
     scrollbar-width: thin;
     scrollbar-color: rgba(128, 128, 128, 0.4) transparent;
@@ -201,11 +262,6 @@
     color: #333333 !important;
   }
 
-  :global(html.light) .glass-card {
-    background: rgba(255, 255, 255, 0.15) !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  }
-
   /* dark mode */
   :global(html.dark) .static-bg {
     background: rgba(30, 30, 30, 1) !important;
@@ -214,11 +270,6 @@
 
   :global(html.dark) .app {
     color: #f6f6f6 !important;
-  }
-
-  :global(html.dark) .glass-card {
-    background: rgba(50, 50, 50, 0.25) !important;
-    border: 1px solid rgba(100, 100, 100, 0.15) !important;
   }
 
   /* fallback to OS preference if no class is present */
