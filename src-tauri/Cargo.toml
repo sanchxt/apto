@@ -30,3 +30,4 @@ rusqlite = { version = "0.34.0", features = ["bundled", "chrono"] }
 chrono = { version = "0.4.40", features = ["serde"] }
 thiserror = "2.0.12"
 log = "0.4.27"
+rand = "0.9.1"

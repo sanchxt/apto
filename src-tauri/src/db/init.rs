@@ -128,6 +128,86 @@ pub fn initialize_database(app_handle: &tauri::AppHandle<Wry>) -> Result<Connect
         [],
     )?;
 
+    // create the 'notes' table
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS notes (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            title           TEXT NOT NULL,
+            content         TEXT NOT NULL,
+            folder_id       INTEGER,
+            is_pinned       INTEGER NOT NULL DEFAULT 0,
+            is_archived     INTEGER NOT NULL DEFAULT 0,
+            color           TEXT,
+            created_at      TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            updated_at      TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            FOREIGN KEY (folder_id) REFERENCES note_folders (id) ON DELETE SET NULL
+        )",
+        [],
+    )?;
+
+    // create the 'note_folders' table
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS note_folders (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            name            TEXT NOT NULL,
+            parent_id       INTEGER,
+            color           TEXT,
+            created_at      TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            updated_at      TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            FOREIGN KEY (parent_id) REFERENCES note_folders (id) ON DELETE CASCADE
+        )",
+        [],
+    )?;
+
+    // create the 'note_tags' table
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS note_tags (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            name            TEXT NOT NULL UNIQUE,
+            color           TEXT
+        )",
+        [],
+    )?;
+
+    // create the 'note_tag_mappings' junction table
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS note_tag_mappings (
+            note_id         INTEGER NOT NULL,
+            tag_id          INTEGER NOT NULL,
+            PRIMARY KEY (note_id, tag_id),
+            FOREIGN KEY (note_id) REFERENCES notes (id) ON DELETE CASCADE,
+            FOREIGN KEY (tag_id) REFERENCES note_tags (id) ON DELETE CASCADE
+        )",
+        [],
+    )?;
+
+    // create the 'note_revisions' table for revision history
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS note_revisions (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            note_id         INTEGER NOT NULL,
+            content         TEXT NOT NULL,
+            created_at      TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            FOREIGN KEY (note_id) REFERENCES notes (id) ON DELETE CASCADE
+        )",
+        [],
+    )?;
+
+    // create the 'note_attachments' table
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS note_attachments (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            note_id         INTEGER NOT NULL,
+            file_name       TEXT NOT NULL,
+            file_path       TEXT NOT NULL,
+            file_type       TEXT NOT NULL,
+            file_size       INTEGER NOT NULL,
+            created_at      TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            FOREIGN KEY (note_id) REFERENCES notes (id) ON DELETE CASCADE
+        )",
+        [],
+    )?;
+
     info!("Database initialized successfully.");
     Ok(conn)
 }
