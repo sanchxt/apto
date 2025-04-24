@@ -15,7 +15,9 @@
         "title": "apto",
         "width": 800,
         "height": 600,
-        "decorations": false
+        "label": "main",
+        "decorations": false,
+        "transparent": true
       }
     ],
     "security": {

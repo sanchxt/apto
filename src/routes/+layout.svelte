@@ -1,54 +1,282 @@
 <script lang="ts">
-    import TitleBar from '../lib/components/TitleBar.svelte';
+  import TitleBar from "../lib/components/TitleBar.svelte";
+  import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
+  import { onMount } from "svelte";
+  import { invoke } from "@tauri-apps/api/core";
+  import { page } from "$app/state";
 
-    // Enable window dragging on the title bar
-    import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
+  // states
+  let useAcrylic = $state(true);
+  let currentTheme = $state("system");
 
-    function handleTitleBarMouseDown(event: MouseEvent) {
-      if (event.target instanceof HTMLElement) {
-        // Only initiate dragging if clicking on the titlebar itself (not buttons)
-        if (event.target.closest('.window-controls') === null) {
-          WebviewWindow.getCurrent().startDragging();
-        }
+  // get current window
+  const appWindow = WebviewWindow.getCurrent();
+
+  // handle titlebar mouse down for dragging
+  function handleTitleBarMouseDown(event: MouseEvent) {
+    if (event.target instanceof HTMLElement) {
+      if (
+        event.target.closest(".window-controls") === null &&
+        event.target.closest(".right-controls") === null
+      ) {
+        appWindow.startDragging();
       }
     }
-  </script>
+  }
 
-  <div class="app">
-    <!-- Title Bar with custom window controls -->
-    <div class="titlebar-container" on:mousedown={handleTitleBarMouseDown} role="presentation">
-      <TitleBar />
-    </div>
+  // update theme and acrylic
+  async function updateAppearance() {
+    if (useAcrylic) {
+      await invoke("set_acrylic_effect", { enable: true });
+    } else {
+      await invoke("set_acrylic_effect", { enable: false });
+    }
+  }
 
-    <!-- App Content -->
-    <div class="content">
-      <slot />
-    </div>
+  // listen for theme changes and apply them
+  onMount(async () => {
+    await updateAppearance();
+
+    // force theme application on initial load
+    const initialSystemTheme = (await invoke("get_system_theme")) as string;
+    console.log("Initial system theme:", initialSystemTheme);
+
+    // set explicit theme class on HTML element
+    if (initialSystemTheme === "dark") {
+      document.documentElement.classList.add("dark");
+      document.documentElement.classList.remove("light");
+    } else {
+      document.documentElement.classList.add("light");
+      document.documentElement.classList.remove("dark");
+    }
+
+    appWindow.listen("tauri://theme-changed", (event) => {
+      const theme =
+        typeof event.payload === "string"
+          ? event.payload
+          : (event.payload as { theme?: string })?.theme || "system";
+
+      currentTheme = theme;
+      console.log("Theme changed to:", theme);
+
+      // force refresh the UI when theme changes
+      if (!useAcrylic) {
+        // small timeout to ensure DOM updates
+        setTimeout(() => {
+          const staticBg = document.querySelector(".static-bg");
+          if (staticBg) {
+            staticBg.classList.remove("static-bg");
+            void (staticBg as HTMLElement).offsetWidth; // force reflow
+            staticBg.classList.add("static-bg");
+          }
+        }, 50);
+      }
+    });
+  });
+
+  let { children } = $props();
+</script>
+
+<div
+  class="app"
+  class:glass-container={useAcrylic}
+  class:static-bg={!useAcrylic}
+>
+  <div
+    class="titlebar-container"
+    onmousedown={handleTitleBarMouseDown}
+    role="presentation"
+  >
+    <TitleBar bind:useAcrylic bind:currentTheme />
   </div>
 
-  <style>
-    .app {
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      width: 100vw;
-      margin: 0;
-      padding: 0;
-    }
+  <div class="app-content">
+    <nav class="sidebar">
+      <ul class="nav-links">
+        <li>
+          <a href="/" class:active={page.url.pathname === "/"}>Habits</a>
+        </li>
+        <li>
+          <a href="/notes" class:active={page.url.pathname === "/notes"}>
+            Notes
+          </a>
+        </li>
+      </ul>
+    </nav>
 
-    .titlebar-container {
-      flex-shrink: 0;
-    }
+    <div class="content">
+      {@render children()}
+    </div>
+  </div>
+</div>
 
-    .content {
-      flex: 1;
-      overflow: auto;
-    }
+<style>
+  .app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+    margin: 0;
+    padding: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+  }
 
-    /* Reset any margin/padding for the whole app */
-    :global(body) {
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
+  .glass-container {
+    background: transparent;
+  }
+
+  .static-bg {
+    background: rgba(245, 245, 245, 1);
+    color: #333333;
+  }
+
+  .titlebar-container {
+    flex-shrink: 0;
+    z-index: 1;
+  }
+
+  .app-content {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .sidebar {
+    width: 180px;
+    padding: 20px 0;
+    border-right: 1px solid rgba(128, 128, 128, 0.2);
+    z-index: 1;
+  }
+
+  .nav-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .nav-links li {
+    margin-bottom: 8px;
+  }
+
+  .nav-links a {
+    display: block;
+    padding: 10px 20px;
+    text-decoration: none;
+    color: inherit;
+    border-radius: 6px;
+    margin: 0 10px;
+    opacity: 0.8;
+    transition: all 0.2s;
+  }
+
+  .nav-links a:hover {
+    opacity: 1;
+    background-color: rgba(128, 128, 128, 0.1);
+  }
+
+  .nav-links a.active {
+    opacity: 1;
+    background-color: rgba(128, 128, 128, 0.15);
+  }
+
+  .content {
+    flex: 1;
+    overflow: auto;
+    padding: 10px;
+    z-index: 1;
+    color: inherit;
+  }
+
+  :global(body) {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: transparent;
+  }
+
+  :global(html) {
+    color-scheme: light dark;
+  }
+
+  /* custom scrollbar styles */
+  :global(*::-webkit-scrollbar) {
+    width: 8px;
+    height: 8px;
+  }
+
+  :global(*::-webkit-scrollbar-track) {
+    background: transparent;
+  }
+
+  :global(*::-webkit-scrollbar-thumb) {
+    border-radius: 4px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+    background-color: rgba(128, 128, 128, 0.4);
+  }
+
+  :global(*::-webkit-scrollbar-thumb:hover) {
+    background-color: rgba(128, 128, 128, 0.5);
+  }
+
+  /* firefox scrollbar styles */
+  :global(*) {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(128, 128, 128, 0.4) transparent;
+  }
+
+  /* Theme-specific scrollbar colors */
+  :global(html.light *::-webkit-scrollbar-thumb) {
+    background-color: rgba(0, 0, 0, 0.2);
+  }
+
+  :global(html.light *::-webkit-scrollbar-thumb:hover) {
+    background-color: rgba(0, 0, 0, 0.3);
+  }
+
+  :global(html.light *) {
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+  }
+
+  :global(html.dark *::-webkit-scrollbar-thumb) {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+
+  :global(html.dark *::-webkit-scrollbar-thumb:hover) {
+    background-color: rgba(255, 255, 255, 0.3);
+  }
+
+  :global(html.dark *) {
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+  }
+
+  /* light mode */
+  :global(html.light) .static-bg {
+    background: rgba(245, 245, 245, 1) !important;
+    color: #333333 !important;
+  }
+
+  :global(html.light) .app {
+    color: #333333 !important;
+  }
+
+  /* dark mode */
+  :global(html.dark) .static-bg {
+    background: rgba(30, 30, 30, 1) !important;
+    color: #f6f6f6 !important;
+  }
+
+  :global(html.dark) .app {
+    color: #f6f6f6 !important;
+  }
+
+  /* fallback to OS preference if no class is present */
+  @media (prefers-color-scheme: dark) {
+    .static-bg {
+      background: rgba(30, 30, 30, 1);
+      color: #f6f6f6;
     }
-  </style>
+  }
+</style>
