@@ -1,6 +1,7 @@
 <script lang="ts">
   // props
-  let { notes, selectedNoteId, onSelectNote, onDeleteNote } = $props();
+  let { notes, selectedNoteId, onSelectNote, onDeleteNote, onTogglePin } =
+    $props();
 
   // format date for display
   function formatDate(dateString: string): string {
@@ -42,6 +43,12 @@
   function handleDeleteNote(event: Event, note: any) {
     event.stopPropagation();
     onDeleteNote(note);
+  }
+
+  // handle pin/unpin button click
+  function handleTogglePin(event: Event, note: any) {
+    event.stopPropagation();
+    onTogglePin(note);
   }
 </script>
 
@@ -90,6 +97,23 @@
           onclick={(e) => e.stopPropagation()}
           onkeydown={(e) => e.stopPropagation()}
         >
+          <span
+            class="pin-btn"
+            class:active={note.is_pinned}
+            title={note.is_pinned ? "Unpin note" : "Pin note"}
+            onclick={(e) => handleTogglePin(e, note)}
+            onkeydown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                handleTogglePin(e, note);
+                e.preventDefault();
+              }
+            }}
+            aria-label={note.is_pinned ? "Unpin note" : "Pin note"}
+            role="button"
+            tabindex="0"
+          >
+            📌
+          </span>
           <span
             class="delete-btn"
             title="Delete note"
@@ -231,17 +255,20 @@
     opacity: 0;
     transition: opacity 0.2s;
     z-index: 2;
+    display: flex;
+    gap: 4px;
   }
 
   .note-item:hover .note-actions {
     opacity: 1;
   }
 
+  .pin-btn,
   .delete-btn {
     background: transparent;
     border: none;
     color: inherit;
-    font-size: 18px;
+    font-size: 16px;
     cursor: pointer;
     width: 24px;
     height: 24px;
@@ -253,11 +280,32 @@
     transition: all 0.2s;
   }
 
+  .pin-btn {
+    font-size: 14px;
+  }
+
+  .pin-btn.active {
+    opacity: 1;
+    color: #ffa500;
+  }
+
+  .pin-btn:hover,
+  .pin-btn:focus {
+    background: rgba(255, 165, 0, 0.1);
+    opacity: 1;
+    outline: none;
+  }
+
   .delete-btn:hover,
   .delete-btn:focus {
     background: rgba(255, 0, 0, 0.1);
     color: #ff3333;
     opacity: 1;
     outline: none;
+  }
+
+  .note-item.pinned .pin-btn {
+    opacity: 1;
+    color: #ffa500;
   }
 </style>

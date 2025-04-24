@@ -18,6 +18,20 @@
   let showDeleteModal = $state(false);
   let noteToDelete = $state<{ id: number; title: string } | null>(null);
 
+  // sort notes - pinned first, then updated_at (descending)
+  function sortNotes(notesToSort: any[]): any[] {
+    return [...notesToSort].sort((a, b) => {
+      // sort by pin status
+      if (a.is_pinned && !b.is_pinned) return -1;
+      if (!a.is_pinned && b.is_pinned) return 1;
+
+      // sort by date (newest first)
+      const dateA = new Date(a.updated_at).getTime();
+      const dateB = new Date(b.updated_at).getTime();
+      return dateB - dateA;
+    });
+  }
+
   // load data on component mount
   onMount(async () => {
     await Promise.all([loadNotes(), loadFolders(), loadTags()]);
@@ -160,6 +174,28 @@
     noteToDelete = null;
   }
 
+  // toggle pin status for a note
+  async function toggleNotePin(note: any) {
+    try {
+      await invoke("toggle_note_pin", { id: note.id });
+      console.log(
+        `${note.is_pinned ? "Unpinned" : "Pinned"} note with ID:`,
+        note.id
+      );
+      await loadNotes();
+
+      // update selected note if it was the pinned/unpinned one
+      if (selectedNote && selectedNote.id === note.id) {
+        const updatedNote = notes.find((n) => n.id === note.id);
+        if (updatedNote) {
+          selectedNote = updatedNote;
+        }
+      }
+    } catch (error) {
+      console.error("Failed to toggle pin status:", error);
+    }
+  }
+
   // toggle sidebar collapse state
   function toggleSidebar() {
     isSidebarCollapsed = !isSidebarCollapsed;
@@ -181,10 +217,11 @@
       <div class="loading">Loading notes...</div>
     {:else}
       <NotesList
-        {notes}
+        notes={sortNotes(notes)}
         selectedNoteId={selectedNote?.id}
         onSelectNote={selectNote}
         onDeleteNote={confirmDeleteNote}
+        onTogglePin={toggleNotePin}
       />
     {/if}
   </div>
