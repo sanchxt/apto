@@ -8,6 +8,7 @@
 
   // states
   let notes = $state<any[]>([]);
+  let allNotes = $state<any[]>([]);
   let folders = $state<any[]>([]);
   let tags = $state<any[]>([]);
   let selectedNote = $state<any>(null);
@@ -15,6 +16,9 @@
   let isCreatingNew = $state(false);
   let isSidebarCollapsed = $state(false);
   let showTagModal = $state(false);
+  let searchQuery = $state("");
+  let searchTimeout = $state<number | null>(null);
+  let isSearching = $state(false);
 
   // modal state
   let showDeleteModal = $state(false);
@@ -40,10 +44,10 @@
     tagsList: any[]
   ): any[] {
     return loadedNotes.map((note) => {
-      // Create a color mapping for each tag
+      // create a color mapping for each tag
       const tagColors: Record<string, string> = {};
 
-      // For each tag in the note, find its color from the tags list
+      // for each tag in the note, find its color from the tags list
       note.tags.forEach((tagName: string) => {
         const tag = tagsList.find((t) => t.name === tagName);
         if (tag && tag.color) {
@@ -51,7 +55,7 @@
         }
       });
 
-      // Add the tag colors to the note object
+      // add the tag colors to the note object
       return {
         ...note,
         tag_colors: tagColors,
@@ -62,7 +66,7 @@
   // load data on component mount
   onMount(async () => {
     await Promise.all([loadFolders(), loadTags()]);
-    await loadNotes(); // Load notes after tags to ensure we have tag colors
+    await loadNotes(); // load notes after tags to ensure we have tag colors
     isLoading = false;
   });
 
@@ -72,10 +76,12 @@
       const loadedNotes: any = await invoke("get_notes");
       console.log("Loaded notes:", loadedNotes);
 
-      // Add tag colors to the notes
-      notes = prepareNotesWithTagColors(loadedNotes, tags);
+      // add tag colors to the notes
+      const notesWithColors = prepareNotesWithTagColors(loadedNotes, tags);
+      allNotes = notesWithColors; // store all notes
+      notes = notesWithColors; // initially show all notes
 
-      // If a note is selected, update it with the latest data
+      // if a note is selected, update it with the latest data
       if (selectedNote) {
         const updatedNote = notes.find((n) => n.id === selectedNote.id);
         if (updatedNote) {
@@ -104,6 +110,56 @@
       console.log("Loaded tags:", tags);
     } catch (error) {
       console.error("Failed to load tags:", error);
+    }
+  }
+
+  // handle search input with debounce
+  function handleSearchInput(event: Event) {
+    const target = event.target as HTMLInputElement;
+    searchQuery = target.value;
+
+    // clear previous timeout
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
+    }
+
+    // set new timeout (300ms debounce)
+    searchTimeout = setTimeout(() => {
+      performSearch();
+    }, 300);
+  }
+
+  // perform the search
+  async function performSearch() {
+    if (!searchQuery.trim()) {
+      // if search is empty, show all notes
+      notes = allNotes;
+      return;
+    }
+
+    isSearching = true;
+    try {
+      const searchResults: any = await invoke("search_notes", {
+        query: searchQuery,
+      });
+      notes = prepareNotesWithTagColors(searchResults, tags);
+    } catch (error) {
+      console.error("Failed to search notes:", error);
+      notes = allNotes.filter(
+        (note) =>
+          note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          note.content.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    } finally {
+      isSearching = false;
+    }
+  }
+
+  // clear search
+  function clearSearch() {
+    if (searchQuery) {
+      searchQuery = "";
+      notes = allNotes;
     }
   }
 
@@ -276,8 +332,35 @@
       </div>
     </div>
 
-    {#if isLoading}
-      <div class="loading">Loading notes...</div>
+    <div class="search-container">
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Search notes..."
+        bind:value={searchQuery}
+        oninput={handleSearchInput}
+        aria-label="Search notes"
+      />
+      {#if searchQuery}
+        <button
+          class="clear-search-btn"
+          onclick={clearSearch}
+          aria-label="Clear search"
+          title="Clear search"
+        >
+          ×
+        </button>
+      {/if}
+    </div>
+
+    {#if isLoading || isSearching}
+      <div class="loading">
+        {isSearching ? "Searching..." : "Loading notes..."}
+      </div>
+    {:else if notes.length === 0 && searchQuery}
+      <div class="empty-list">
+        <p>No notes match your search</p>
+      </div>
     {:else}
       <NotesList
         notes={sortNotes(notes)}
@@ -381,6 +464,51 @@
     font-weight: 600;
   }
 
+  .search-container {
+    position: relative;
+    padding: 8px 16px;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 6px 30px 6px 10px;
+    border-radius: 4px;
+    border: 1px solid rgba(128, 128, 128, 0.3);
+    background: rgba(128, 128, 128, 0.05);
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+  }
+
+  .search-input:focus {
+    border-color: rgba(128, 128, 128, 0.5);
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .clear-search-btn {
+    position: absolute;
+    right: 22px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    color: rgba(128, 128, 128, 0.6);
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border-radius: 50%;
+  }
+
+  .clear-search-btn:hover {
+    color: rgba(128, 128, 128, 0.9);
+    background: rgba(128, 128, 128, 0.1);
+  }
+
   .new-note-btn {
     display: flex;
     align-items: center;
@@ -457,6 +585,12 @@
   }
 
   .loading {
+    padding: 16px;
+    text-align: center;
+    color: rgba(128, 128, 128, 0.8);
+  }
+
+  .empty-list {
     padding: 16px;
     text-align: center;
     color: rgba(128, 128, 128, 0.8);
