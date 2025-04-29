@@ -4,6 +4,7 @@
   import NotesList from "./NotesList.svelte";
   import NoteEditor from "./NoteEditor.svelte";
   import DeleteConfirmationModal from "./DeleteConfirmationModal.svelte";
+  import TagModal from "./tags/TagModal.svelte";
 
   // states
   let notes = $state<any[]>([]);
@@ -13,6 +14,7 @@
   let isLoading = $state(true);
   let isCreatingNew = $state(false);
   let isSidebarCollapsed = $state(false);
+  let showTagModal = $state(false);
 
   // modal state
   let showDeleteModal = $state(false);
@@ -200,6 +202,23 @@
   function toggleSidebar() {
     isSidebarCollapsed = !isSidebarCollapsed;
   }
+
+  // handle keydown for sidebar toggle
+  function handleSidebarKeydown(e: KeyboardEvent) {
+    if (e.key === "Enter") {
+      toggleSidebar();
+    }
+  }
+
+  // handle tag updates
+  function handleTagsUpdated() {
+    loadTags();
+  }
+
+  // toggle tag modal visibility
+  function toggleTagModal() {
+    showTagModal = !showTagModal;
+  }
 </script>
 
 <div class="notes-management">
@@ -207,6 +226,13 @@
     <div class="sidebar-header">
       <h2>Notes</h2>
       <div class="sidebar-controls">
+        <button
+          class="tag-manager-btn"
+          onclick={toggleTagModal}
+          title="Manage Tags"
+        >
+          🏷️
+        </button>
         <button class="new-note-btn" onclick={createNewNote}>
           <span>+</span> New
         </button>
@@ -230,7 +256,7 @@
     type="button"
     class="sidebar-toggle"
     onclick={toggleSidebar}
-    onkeydown={(e) => e.key === "Enter" && toggleSidebar()}
+    onkeydown={handleSidebarKeydown}
     title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
   >
     <span class="toggle-icon">{isSidebarCollapsed ? "›" : "‹"}</span>
@@ -267,6 +293,10 @@
       onConfirm={deleteNote}
       onCancel={cancelDeleteNote}
     />
+  {/if}
+
+  {#if showTagModal}
+    <TagModal onClose={toggleTagModal} onTagsUpdated={handleTagsUpdated} />
   {/if}
 </div>
 
@@ -305,6 +335,7 @@
   .sidebar-controls {
     display: flex;
     align-items: center;
+    gap: 8px;
   }
 
   .sidebar-header h2 {
@@ -335,6 +366,25 @@
     font-size: 18px;
     margin-right: 4px;
     line-height: 1;
+  }
+
+  .tag-manager-btn {
+    background: rgba(128, 128, 128, 0.1);
+    border: none;
+    border-radius: 4px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    color: inherit;
+    transition: background 0.2s;
+  }
+
+  .tag-manager-btn:hover {
+    background: rgba(128, 128, 128, 0.2);
   }
 
   .sidebar-toggle {
