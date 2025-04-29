@@ -50,6 +50,49 @@
     event.stopPropagation();
     onTogglePin(note);
   }
+
+  // get tag color from tag name (if tag has associated color object)
+  function getTagStyle(tagName: string, note: any): string {
+    if (!note.tag_colors || !note.tag_colors[tagName]) {
+      return "";
+    }
+    return `background-color: ${note.tag_colors[tagName]}; color: ${getContrastTextColor(note.tag_colors[tagName])}`;
+  }
+
+  // determine text color (black or white) based on background color
+  function getContrastTextColor(hexColor: string): string {
+    // Default to black if hexColor is invalid
+    if (!hexColor || !hexColor.startsWith("#")) {
+      return "inherit";
+    }
+
+    // Convert hex to RGB
+    let r = 0,
+      g = 0,
+      b = 0;
+
+    // 3 digits
+    if (hexColor.length === 4) {
+      r = parseInt(hexColor[1] + hexColor[1], 16);
+      g = parseInt(hexColor[2] + hexColor[2], 16);
+      b = parseInt(hexColor[3] + hexColor[3], 16);
+    }
+    // 6 digits
+    else if (hexColor.length === 7) {
+      r = parseInt(hexColor.substring(1, 3), 16);
+      g = parseInt(hexColor.substring(3, 5), 16);
+      b = parseInt(hexColor.substring(5, 7), 16);
+    } else {
+      return "inherit";
+    }
+
+    // Calculate relative luminance using YIQ formula
+    // YIQ = (Y * 299 + I * 587 + Q * 114) / 1000
+    const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+
+    // Return black or white depending on luminance
+    return yiq >= 128 ? "#000000" : "#ffffff";
+  }
 </script>
 
 <div class="notes-list" role="listbox" aria-label="Notes list">
@@ -81,12 +124,12 @@
             <span class="note-date">{formatDate(note.updated_at)}</span>
             {#if note.tags.length > 0}
               <div class="note-tags">
-                {#each note.tags.slice(0, 2) as tag}
-                  <span class="tag">{tag}</span>
-                {/each}
                 {#if note.tags.length > 2}
                   <span class="more-tags">+{note.tags.length - 2}</span>
                 {/if}
+                {#each note.tags.slice(0, 2) as tag}
+                  <span class="tag" style={getTagStyle(tag, note)}>{tag}</span>
+                {/each}
               </div>
             {/if}
           </div>
@@ -234,6 +277,7 @@
     flex-wrap: nowrap;
     overflow: hidden;
     max-width: 70%;
+    flex-direction: row-reverse;
   }
 
   .tag {
@@ -241,11 +285,16 @@
     background: rgba(128, 128, 128, 0.1);
     border-radius: 4px;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100px;
   }
 
   .more-tags {
     font-size: 11px;
     opacity: 0.7;
+    flex-shrink: 0;
+    margin-right: 2px;
   }
 
   .note-actions {

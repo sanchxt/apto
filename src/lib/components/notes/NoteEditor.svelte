@@ -66,6 +66,55 @@
     textarea.style.height = "auto";
     textarea.style.height = `${textarea.scrollHeight}px`;
   }
+
+  // get tag color from tag name
+  function getTagColor(tagName: string): string | null {
+    const tag = tags.find((t) => t.name === tagName);
+    return tag?.color || null;
+  }
+
+  // generate style string for tag based on its color
+  function getTagStyle(tagName: string): string {
+    const tagColor = getTagColor(tagName);
+    if (!tagColor) return "";
+
+    return `background-color: ${tagColor}; color: ${getContrastTextColor(tagColor)};`;
+  }
+
+  // determine text color (black or white) based on background color
+  function getContrastTextColor(hexColor: string): string {
+    // Default to inherit if hexColor is invalid
+    if (!hexColor || !hexColor.startsWith("#")) {
+      return "inherit";
+    }
+
+    // Convert hex to RGB
+    let r = 0,
+      g = 0,
+      b = 0;
+
+    // 3 digits
+    if (hexColor.length === 4) {
+      r = parseInt(hexColor[1] + hexColor[1], 16);
+      g = parseInt(hexColor[2] + hexColor[2], 16);
+      b = parseInt(hexColor[3] + hexColor[3], 16);
+    }
+    // 6 digits
+    else if (hexColor.length === 7) {
+      r = parseInt(hexColor.substring(1, 3), 16);
+      g = parseInt(hexColor.substring(3, 5), 16);
+      b = parseInt(hexColor.substring(5, 7), 16);
+    } else {
+      return "inherit";
+    }
+
+    // Calculate relative luminance using YIQ formula
+    // YIQ = (Y * 299 + I * 587 + Q * 114) / 1000
+    const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+
+    // Return black or white depending on luminance
+    return yiq >= 128 ? "#000000" : "#ffffff";
+  }
 </script>
 
 <div class="note-editor">
@@ -85,7 +134,10 @@
             <div class="no-tags">No tags available</div>
           {:else}
             {#each tags as tag}
-              <label class="tag-checkbox">
+              <label
+                class="tag-checkbox"
+                style={tag.color ? `border-left: 4px solid ${tag.color};` : ""}
+              >
                 <input
                   type="checkbox"
                   checked={selectedTags.includes(tag.name)}
@@ -128,9 +180,13 @@
   <div class="editor-footer">
     <div class="selected-tags">
       {#each selectedTags as tag}
-        <span class="selected-tag">
+        <span class="selected-tag" style={getTagStyle(tag)}>
           {tag}
-          <button class="remove-tag" onclick={() => toggleTag(tag)}>×</button>
+          <button
+            class="remove-tag"
+            style={getTagColor(tag) ? `color: inherit; opacity: 0.9;` : ""}
+            onclick={() => toggleTag(tag)}>×</button
+          >
         </span>
       {/each}
     </div>
@@ -214,6 +270,7 @@
     cursor: pointer;
     transition: background 0.2s;
     color: #333;
+    padding-left: 16px; /* Space for the color bar */
   }
 
   .tag-checkbox:hover {
@@ -315,6 +372,7 @@
     justify-content: center;
     padding: 0;
     opacity: 0.7;
+    transition: opacity 0.2s;
   }
 
   .remove-tag:hover {

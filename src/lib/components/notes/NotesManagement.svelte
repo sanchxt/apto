@@ -34,17 +34,54 @@
     });
   }
 
+  // prepare notes with tag colors
+  function prepareNotesWithTagColors(
+    loadedNotes: any[],
+    tagsList: any[]
+  ): any[] {
+    return loadedNotes.map((note) => {
+      // Create a color mapping for each tag
+      const tagColors: Record<string, string> = {};
+
+      // For each tag in the note, find its color from the tags list
+      note.tags.forEach((tagName: string) => {
+        const tag = tagsList.find((t) => t.name === tagName);
+        if (tag && tag.color) {
+          tagColors[tagName] = tag.color;
+        }
+      });
+
+      // Add the tag colors to the note object
+      return {
+        ...note,
+        tag_colors: tagColors,
+      };
+    });
+  }
+
   // load data on component mount
   onMount(async () => {
-    await Promise.all([loadNotes(), loadFolders(), loadTags()]);
+    await Promise.all([loadFolders(), loadTags()]);
+    await loadNotes(); // Load notes after tags to ensure we have tag colors
     isLoading = false;
   });
 
   // load notes from backend
   async function loadNotes() {
     try {
-      notes = await invoke("get_notes");
-      console.log("Loaded notes:", notes);
+      const loadedNotes: any = await invoke("get_notes");
+      console.log("Loaded notes:", loadedNotes);
+
+      // Add tag colors to the notes
+      notes = prepareNotesWithTagColors(loadedNotes, tags);
+
+      // If a note is selected, update it with the latest data
+      if (selectedNote) {
+        const updatedNote = notes.find((n) => n.id === selectedNote.id);
+        if (updatedNote) {
+          selectedNote = updatedNote;
+        }
+      }
     } catch (error) {
       console.error("Failed to load notes:", error);
     }
@@ -212,7 +249,7 @@
 
   // handle tag updates
   function handleTagsUpdated() {
-    loadTags();
+    loadTags().then(() => loadNotes());
   }
 
   // toggle tag modal visibility
