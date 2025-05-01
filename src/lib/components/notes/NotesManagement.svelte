@@ -1,10 +1,12 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { invoke } from "@tauri-apps/api/core";
+
   import NotesList from "./NotesList.svelte";
   import NoteEditor from "./NoteEditor.svelte";
-  import DeleteConfirmationModal from "./DeleteConfirmationModal.svelte";
   import TagModal from "./tags/TagModal.svelte";
+  import FolderModal from "./folders/FolderModal.svelte";
+  import DeleteConfirmationModal from "./DeleteConfirmationModal.svelte";
 
   // states
   let notes = $state<any[]>([]);
@@ -19,6 +21,7 @@
   let searchQuery = $state("");
   let searchTimeout = $state<number | null>(null);
   let isSearching = $state(false);
+  let showFolderModal = $state(false);
 
   // modal state
   let showDeleteModal = $state(false);
@@ -291,6 +294,14 @@
     }
   }
 
+  function toggleFolderModal() {
+    showFolderModal = !showFolderModal;
+  }
+
+  function handleFoldersUpdated() {
+    loadFolders();
+  }
+
   // toggle sidebar collapse state
   function toggleSidebar() {
     isSidebarCollapsed = !isSidebarCollapsed;
@@ -319,6 +330,13 @@
     <div class="sidebar-header">
       <h2>Notes</h2>
       <div class="sidebar-controls">
+        <button
+          class="folder-manager-btn"
+          onclick={toggleFolderModal}
+          title="Manage Folders"
+        >
+          📁
+        </button>
         <button
           class="tag-manager-btn"
           onclick={toggleTagModal}
@@ -417,6 +435,13 @@
 
   {#if showTagModal}
     <TagModal onClose={toggleTagModal} onTagsUpdated={handleTagsUpdated} />
+  {/if}
+
+  {#if showFolderModal}
+    <FolderModal
+      onClose={toggleFolderModal}
+      onFoldersUpdated={handleFoldersUpdated}
+    />
   {/if}
 </div>
 
@@ -549,6 +574,25 @@
   }
 
   .tag-manager-btn:hover {
+    background: rgba(128, 128, 128, 0.2);
+  }
+
+  .folder-manager-btn {
+    background: rgba(128, 128, 128, 0.1);
+    border: none;
+    border-radius: 4px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    color: inherit;
+    transition: background 0.2s;
+  }
+
+  .folder-manager-btn:hover {
     background: rgba(128, 128, 128, 0.2);
   }
 
