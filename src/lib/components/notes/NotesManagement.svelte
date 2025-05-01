@@ -302,6 +302,37 @@
     loadFolders();
   }
 
+  async function moveNoteToFolder(note: any, folderId: number | null) {
+    try {
+      await invoke("update_note", {
+        id: note.id,
+        title: note.title,
+        content: note.content,
+        folderId: folderId,
+        tags: note.tags,
+        isPinned: note.is_pinned,
+        isArchived: note.is_archived,
+        color: note.color,
+        createRevision: false,
+      });
+
+      console.log(
+        `Moved note ID ${note.id} to folder ID ${folderId || "null"}`
+      );
+      await loadNotes();
+
+      // if the selected note was moved, update its data
+      if (selectedNote && selectedNote.id === note.id) {
+        const updatedNote = notes.find((n) => n.id === note.id);
+        if (updatedNote) {
+          selectedNote = updatedNote;
+        }
+      }
+    } catch (error) {
+      console.error("Failed to move note:", error);
+    }
+  }
+
   // toggle sidebar collapse state
   function toggleSidebar() {
     isSidebarCollapsed = !isSidebarCollapsed;
@@ -382,10 +413,12 @@
     {:else}
       <NotesList
         notes={sortNotes(notes)}
+        {folders}
         selectedNoteId={selectedNote?.id}
         onSelectNote={selectNote}
         onDeleteNote={confirmDeleteNote}
         onTogglePin={toggleNotePin}
+        onMoveNote={moveNoteToFolder}
       />
     {/if}
   </div>
