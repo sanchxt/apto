@@ -1,5 +1,5 @@
 <script lang="ts">
-  import NotesManagement from "$lib/components/notes/NotesManagement.svelte";
+  import HabitTracking from "$lib/components/habits/HabitTracking.svelte";
   import { goto } from "$app/navigation";
 
   function goHome() {
@@ -7,15 +7,15 @@
   }
 </script>
 
-<main class="notes-container">
+<main class="container">
   <div class="header">
     <button class="home-button" onclick={goHome}>
       <span class="home-icon">←</span>
     </button>
-    <h1>Notes</h1>
+    <h1>Habits</h1>
   </div>
 
-  <NotesManagement />
+  <HabitTracking />
 </main>
 
 <style>
@@ -26,14 +26,16 @@
     font-weight: 400;
   }
 
-  .notes-container {
-    width: 100%;
-    height: 100%;
+  .container {
+    margin: 0;
+    padding: 10px 20px 20px 20px;
     display: flex;
     flex-direction: column;
-    padding: 10px 20px;
+    align-items: center;
+    text-align: center;
+    height: 100%;
     box-sizing: border-box;
-    overflow: auto;
+    overflow-y: auto;
     min-height: 0;
   }
 
@@ -43,7 +45,7 @@
     align-items: center;
     justify-content: center;
     position: relative;
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
   }
 
   h1 {

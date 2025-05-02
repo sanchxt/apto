@@ -483,6 +483,8 @@
     display: flex;
     height: 100%;
     position: relative;
+    overflow: visible;
+    min-height: 0;
   }
 
   .notes-sidebar {
@@ -490,11 +492,12 @@
     border-right: 1px solid rgba(128, 128, 128, 0.2);
     display: flex;
     flex-direction: column;
-    overflow: hidden;
     transition:
       transform 0.3s ease,
       width 0.3s ease;
     flex-shrink: 0;
+    height: 100%;
+    overflow: hidden;
   }
 
   .notes-sidebar.collapsed {
@@ -675,9 +678,11 @@
 
   .notes-content {
     flex: 1;
-    overflow: hidden;
+    overflow: auto;
     display: flex;
     flex-direction: column;
+    height: 100%;
+    min-height: 0;
   }
 
   .no-selection {
@@ -686,5 +691,10 @@
     align-items: center;
     justify-content: center;
     color: rgba(128, 128, 128, 0.6);
+  }
+
+  :global(.notes-list-container) {
+    overflow-y: auto;
+    flex: 1;
   }
 </style>
