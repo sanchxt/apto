@@ -420,4 +420,19 @@
   :global(html.dark) .tag-checkbox {
     color: #eee;
   }
+
+  :global(html.dark) .folder-select {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+  }
+
+  :global(html.dark) .folder-select option {
+    background: #2d2d2d;
+    color: #fff;
+  }
+
+  :global(html.dark) .folder-select option:hover,
+  :global(html.dark) .folder-select option:focus {
+    background: #404040;
+  }
 </style>
