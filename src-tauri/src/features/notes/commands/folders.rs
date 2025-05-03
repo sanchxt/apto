@@ -298,3 +298,81 @@ pub async fn get_subfolders(
 
     Ok(folders)
 }
+
+async fn get_direct_subfolder_ids(
+    parent_id: Option<i64>,
+    db_state: &State<'_, DbState>,
+) -> Result<Vec<i64>, String> {
+    let conn = db_state
+        .0
+        .lock()
+        .map_err(|e| format!("Failed to lock DB mutex: {}", e))?;
+
+    // get immediate subfolders
+    let direct_subfolders: Vec<i64> = if let Some(id) = parent_id {
+        // query for subfolders of the given parent
+        let mut stmt = conn
+            .prepare("SELECT id FROM note_folders WHERE parent_id = ?")
+            .map_err(|e| format!("Failed to prepare statement: {}", e))?;
+
+        let subfolder_rows = stmt
+            .query_map(params![id], |row| row.get(0))
+            .map_err(|e| format!("Failed to query subfolders: {}", e))?;
+
+        let mut subfolder_ids = Vec::new();
+        for subfolder_id in subfolder_rows {
+            subfolder_ids
+                .push(subfolder_id.map_err(|e| format!("Failed to get subfolder ID: {}", e))?);
+        }
+        subfolder_ids
+    } else {
+        // query for all root folders
+        let mut stmt = conn
+            .prepare("SELECT id FROM note_folders WHERE parent_id IS NULL")
+            .map_err(|e| format!("Failed to prepare statement: {}", e))?;
+
+        let subfolder_rows = stmt
+            .query_map([], |row| row.get(0))
+            .map_err(|e| format!("Failed to query root folders: {}", e))?;
+
+        let mut subfolder_ids = Vec::new();
+        for subfolder_id in subfolder_rows {
+            subfolder_ids
+                .push(subfolder_id.map_err(|e| format!("Failed to get root folder ID: {}", e))?);
+        }
+        subfolder_ids
+    };
+
+    Ok(direct_subfolders)
+}
+
+pub async fn get_all_subfolder_ids(
+    parent_id: Option<i64>,
+    db_state: &State<'_, DbState>,
+) -> Result<Vec<i64>, String> {
+    let mut all_subfolder_ids = Vec::new();
+
+    // get direct subfolders without holding the mutex across await points
+    let direct_subfolders = get_direct_subfolder_ids(parent_id, db_state).await?;
+
+    // add direct subfolders to the result
+    all_subfolder_ids.extend(direct_subfolders.clone());
+
+    // recursively get all subfolders for each direct subfolder
+    for subfolder_id in direct_subfolders {
+        // box the recursive future to avoid infinitely sized future
+        let nested_future = Box::pin(get_all_subfolder_ids(Some(subfolder_id), db_state));
+        let nested_subfolder_ids = nested_future.await?;
+        all_subfolder_ids.extend(nested_subfolder_ids);
+    }
+
+    Ok(all_subfolder_ids)
+}
+
+#[tauri::command]
+pub async fn get_all_subfolders_recursive(
+    parent_id: Option<i64>,
+    db_state: State<'_, DbState>,
+) -> Result<Vec<i64>, String> {
+    get_all_subfolder_ids(parent_id, &db_state).await
+}

@@ -545,6 +545,167 @@ pub async fn get_notes_by_folder(
 }
 
 #[tauri::command]
+pub async fn get_notes_by_folder_recursive(
+    folder_id: Option<i64>,
+    include_subfolders: bool,
+    db_state: State<'_, DbState>,
+) -> Result<Vec<Note>, String> {
+    // no need to include subfolders, use the existing function
+    if !include_subfolders {
+        return get_notes_by_folder(folder_id, db_state).await;
+    }
+
+    // get all folder IDs
+    let mut all_folder_ids = Vec::new();
+
+    // add the current folder ID if specified
+    if let Some(id) = folder_id {
+        all_folder_ids.push(id);
+
+        // get all subfolder IDs if including subfolders
+        if include_subfolders {
+            use crate::features::notes::commands::folders::get_all_subfolder_ids;
+            let subfolder_ids = get_all_subfolder_ids(Some(id), &db_state).await?;
+            all_folder_ids.extend(subfolder_ids);
+        }
+    }
+
+    let conn = db_state
+        .0
+        .lock()
+        .map_err(|e| format!("Failed to lock DB mutex: {}", e))?;
+
+    let mut notes = Vec::new();
+
+    // construct the query based on folder IDs
+    let query = if folder_id.is_some() {
+        if all_folder_ids.len() > 1 {
+            // multiple folders: current folder and its subfolders
+            let placeholders = all_folder_ids
+                .iter()
+                .map(|_| "?")
+                .collect::<Vec<_>>()
+                .join(",");
+            format!(
+                "SELECT id, title, content, folder_id, is_pinned, is_archived, color, created_at, updated_at
+                 FROM notes WHERE folder_id IN ({})",
+                placeholders
+            )
+        } else {
+            // just the current folder
+            "SELECT id, title, content, folder_id, is_pinned, is_archived, color, created_at, updated_at
+             FROM notes WHERE folder_id = ?".to_string()
+        }
+    } else {
+        // no folder specified, get all notes with null folder_id (root notes)
+        "SELECT id, title, content, folder_id, is_pinned, is_archived, color, created_at, updated_at
+         FROM notes WHERE folder_id IS NULL"
+            .to_string()
+    };
+
+    // prepare the query
+    let mut stmt = conn
+        .prepare(&query)
+        .map_err(|e| format!("Failed to prepare statement: {}", e))?;
+
+    // execute the query with appropriate parameters
+    let mut rows = if folder_id.is_some() {
+        if all_folder_ids.len() > 1 {
+            // Convert folder IDs to params
+            let params = rusqlite::params_from_iter(all_folder_ids.iter());
+            stmt.query(params)
+                .map_err(|e| format!("Failed to execute query: {}", e))?
+        } else {
+            stmt.query(params![folder_id])
+                .map_err(|e| format!("Failed to execute query: {}", e))?
+        }
+    } else {
+        stmt.query([])
+            .map_err(|e| format!("Failed to execute query: {}", e))?
+    };
+
+    // process each row
+    while let Some(row) = rows
+        .next()
+        .map_err(|e| format!("Failed to get next row: {}", e))?
+    {
+        let id: i64 = row.get(0).map_err(|e| format!("Failed to get id: {}", e))?;
+        let title: String = row
+            .get(1)
+            .map_err(|e| format!("Failed to get title: {}", e))?;
+        let content: String = row
+            .get(2)
+            .map_err(|e| format!("Failed to get content: {}", e))?;
+        let folder_id: Option<i64> = row
+            .get(3)
+            .map_err(|e| format!("Failed to get folder_id: {}", e))?;
+        let is_pinned: i32 = row
+            .get(4)
+            .map_err(|e| format!("Failed to get is_pinned: {}", e))?;
+        let is_archived: i32 = row
+            .get(5)
+            .map_err(|e| format!("Failed to get is_archived: {}", e))?;
+        let color: Option<String> = row
+            .get(6)
+            .map_err(|e| format!("Failed to get color: {}", e))?;
+        let created_at: String = row
+            .get(7)
+            .map_err(|e| format!("Failed to get created_at: {}", e))?;
+        let updated_at: String = row
+            .get(8)
+            .map_err(|e| format!("Failed to get updated_at: {}", e))?;
+
+        // get tags for this note
+        let mut tags_stmt = conn
+            .prepare(
+                "SELECT t.name FROM note_tags t
+                 JOIN note_tag_mappings m ON t.id = m.tag_id
+                 WHERE m.note_id = ?",
+            )
+            .map_err(|e| format!("Failed to prepare tags statement: {}", e))?;
+
+        let tags_rows = tags_stmt
+            .query_map(params![id], |row| {
+                let name: String = row.get(0)?;
+                Ok(name)
+            })
+            .map_err(|e| format!("Failed to query tags: {}", e))?;
+
+        let mut tags = Vec::new();
+        for tag_result in tags_rows {
+            tags.push(tag_result.map_err(|e| format!("Failed to process tag: {}", e))?);
+        }
+
+        // parse dates
+        let created_at = DateTime::parse_from_rfc3339(&created_at)
+            .map_err(|e| format!("Invalid created_at date: {}", e))?
+            .with_timezone(&Utc);
+
+        let updated_at = DateTime::parse_from_rfc3339(&updated_at)
+            .map_err(|e| format!("Invalid updated_at date: {}", e))?
+            .with_timezone(&Utc);
+
+        // create Note struct
+        let note = Note {
+            id,
+            title,
+            content,
+            folder_id,
+            tags,
+            is_pinned: is_pinned != 0,
+            is_archived: is_archived != 0,
+            color,
+            created_at,
+            updated_at,
+        };
+
+        notes.push(note);
+    }
+
+    Ok(notes)
+}
+
+#[tauri::command]
 pub async fn search_notes(
     query: String,
     db_state: State<'_, DbState>,
