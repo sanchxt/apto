@@ -3,7 +3,6 @@
   import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
   import { onMount } from "svelte";
   import { invoke } from "@tauri-apps/api/core";
-  import { page } from "$app/state";
 
   // states
   let useAcrylic = $state(true);
@@ -91,19 +90,6 @@
   </div>
 
   <div class="app-content">
-    <nav class="sidebar">
-      <ul class="nav-links">
-        <li>
-          <a href="/" class:active={page.url.pathname === "/"}>Habits</a>
-        </li>
-        <li>
-          <a href="/notes" class:active={page.url.pathname === "/notes"}>
-            Notes
-          </a>
-        </li>
-      </ul>
-    </nav>
-
     <div class="content">
       {@render children()}
     </div>
@@ -143,50 +129,13 @@
     overflow: hidden;
   }
 
-  .sidebar {
-    width: 180px;
-    padding: 20px 0;
-    border-right: 1px solid rgba(128, 128, 128, 0.2);
-    z-index: 1;
-  }
-
-  .nav-links {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-
-  .nav-links li {
-    margin-bottom: 8px;
-  }
-
-  .nav-links a {
-    display: block;
-    padding: 10px 20px;
-    text-decoration: none;
-    color: inherit;
-    border-radius: 6px;
-    margin: 0 10px;
-    opacity: 0.8;
-    transition: all 0.2s;
-  }
-
-  .nav-links a:hover {
-    opacity: 1;
-    background-color: rgba(128, 128, 128, 0.1);
-  }
-
-  .nav-links a.active {
-    opacity: 1;
-    background-color: rgba(128, 128, 128, 0.15);
-  }
-
   .content {
     flex: 1;
     overflow: auto;
     padding: 10px;
     z-index: 1;
     color: inherit;
+    min-height: 0;
   }
 
   :global(body) {
@@ -227,7 +176,7 @@
     scrollbar-color: rgba(128, 128, 128, 0.4) transparent;
   }
 
-  /* Theme-specific scrollbar colors */
+  /* theme-specific scrollbar colors */
   :global(html.light *::-webkit-scrollbar-thumb) {
     background-color: rgba(0, 0, 0, 0.2);
   }

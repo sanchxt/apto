@@ -31,11 +31,12 @@ use features::notes::commands::attachments::{
     add_attachment, delete_attachment, get_attachment_by_id, get_note_attachments, open_attachment,
 };
 use features::notes::commands::crud::{
-    create_note, delete_note, get_note_by_id, get_notes, get_notes_by_folder, search_notes,
-    toggle_note_archive, toggle_note_pin, update_note,
+    create_note, delete_note, get_note_by_id, get_notes, get_notes_by_folder,
+    get_notes_by_folder_recursive, search_notes, toggle_note_archive, toggle_note_pin, update_note,
 };
 use features::notes::commands::folders::{
-    create_folder, delete_folder, get_folder_by_id, get_folders, get_subfolders, update_folder,
+    create_folder, delete_folder, get_all_subfolders_recursive, get_folder_by_id, get_folders,
+    get_subfolders, update_folder,
 };
 use features::notes::commands::revisions::{
     clean_old_revisions, create_revision, delete_revision, get_note_revisions, get_revision_by_id,
@@ -137,6 +138,8 @@ pub fn run() {
             update_folder,
             delete_folder,
             get_subfolders,
+            get_all_subfolders_recursive,
+            get_notes_by_folder_recursive,
             // note tag commands
             create_note_tag,
             get_all_note_tags,
