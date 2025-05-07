@@ -12,7 +12,6 @@
     <button class="home-button" onclick={goHome}>
       <span class="home-icon">←</span>
     </button>
-    <h1>Habits</h1>
   </div>
 
   <HabitTracking />
@@ -25,7 +24,6 @@
     line-height: 24px;
     font-weight: 400;
   }
-
   .container {
     margin: 0;
     padding: 10px 20px 20px 20px;
@@ -38,7 +36,6 @@
     overflow-y: auto;
     min-height: 0;
   }
-
   .header {
     display: flex;
     width: 100%;
@@ -46,15 +43,12 @@
     justify-content: center;
     position: relative;
     margin-bottom: 2rem;
+    height: 40px;
   }
-
-  h1 {
-    margin: 0;
-  }
-
   .home-button {
     position: absolute;
     left: 0;
+    top: 0;
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -66,11 +60,9 @@
     cursor: pointer;
     transition: background-color 0.2s;
   }
-
   .home-button:hover {
     background-color: rgba(128, 128, 128, 0.2);
   }
-
   .home-icon {
     font-size: 1.2rem;
   }

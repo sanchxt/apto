@@ -1,6 +1,7 @@
 <script lang="ts">
   import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
   import { invoke } from "@tauri-apps/api/core";
+  import { currentRoute } from "../stores/route";
 
   // get current window
   const appWindow = WebviewWindow.getCurrent();
@@ -159,7 +160,7 @@
       {/if}
     </button>
   </div>
-  <div class="title">apto</div>
+  <div class="title">{$currentRoute}</div>
   <div class="right-controls">
     <button
       class="theme-toggle"

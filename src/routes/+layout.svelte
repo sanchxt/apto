@@ -3,6 +3,8 @@
   import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
   import { onMount } from "svelte";
   import { invoke } from "@tauri-apps/api/core";
+  import { page } from "$app/stores";
+  import { setRoute } from "$lib/stores/route";
 
   // states
   let useAcrylic = $state(true);
@@ -71,6 +73,10 @@
         }, 50);
       }
     });
+  });
+
+  $effect(() => {
+    setRoute($page.url.pathname);
   });
 
   let { children } = $props();
